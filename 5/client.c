@@ -18,8 +18,7 @@ int main()
     struct sembuf sem_unlock = {0, 1, SEM_UNDO};
 
     key = ftok(".", 'm');
-
-           // Создаем семафор
+               // Создаем семафор
     semid = semget(key, 1, IPC_CREAT | 0666);
     if (semid < 0) {
         perror("semget");
@@ -31,10 +30,9 @@ int main()
         perror("semctl");
         exit(1);
     }
+   semop(semid, &sem_lock, 1);
 
-    semop(semid, &sem_lock, 1);
-
-    if ((shmid = shmget(key, SHMSZ, 0666)) < 0) {
+    if ((shmid = shmget(key, SHMSZ, IPC_CREAT | 0666)) < 0) {
         return 1;
     }
 
@@ -45,11 +43,9 @@ int main()
 
     for(int i = 0;i < 10;++i){
         s = shm + 4 * i;
-        int restored = 0;
-        for (int i = 0; i < 4; i++) {
-          restored |= ((int)(s+i) & 0xFF) << (i * 8);
-        }
-        printf("%d\n", restored);
+        srand(time(NULL));
+        int random_num = rand() % 100;
+        memcpy(s, &random_num, sizeof(int));
     }
-    semop(semid, &sem_unlock, 1);
+ semop(semid, &sem_unlock, 1);
 }
